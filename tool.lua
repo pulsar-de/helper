@@ -116,11 +116,35 @@
 
     tool.spairs( tbl[, func] )
 
-        - like ipairs for alphabetical indices
+        - sorted by indexes, like ipairs but for alphabetical indices order
         - based on http://www.lua.org/pil/19.3.html written by Roberto Ierusalimschy
         - license: MIT License
         - argument #2 is optional and similar to the second optional argument in table.sort function
         - example: for k, v in tool.spairs( tbl ) do print( k, v )
+
+    string/nil, nil/err = num2hex( num )
+
+        - converts number to hex - HEX representation of num
+        - returns: string, nil on success
+        - returns: nil, err on error
+        - based on a script by ukpyr
+        - example: result, err = num2hex( num ); if result then ... else err
+
+    string/nil, nil/err = str2hex( str )
+
+        - converts string to hex - HEX representation of str
+        - returns: string, nil on success
+        - returns: nil, err on error
+        - based on a script by ukpyr
+        - example: result, err = str2hex( str ); if result then ... else err
+
+    string/nil, nil/err = str2base64( str )
+
+        - string to base64 - BASE64 representation of str
+        - returns: string, nil on success
+        - returns: nil, err on error
+        - based on a script by ukpyr
+        - example: result, err = str2base64( str ); if result then ... else err
 
 ]]
 
@@ -146,6 +170,9 @@ local MakeFile
 local ClearFile
 local FileWrite
 local spairs
+local num2hex
+local str2hex
+local str2base64
 
 --// table lookups
 local os_time = os.time
@@ -154,9 +181,12 @@ local io_open = io.open
 local math_floor = math.floor
 local math_random = math.random
 local math_randomseed = math.randomseed
+local math_fmod = math.fmod
 local string_format = string.format
 local string_find = string.find
 local string_match = string.match
+local string_sub = string.sub
+local string_byte = string.byte
 local table_insert = table.insert
 local table_sort = table.sort
 
@@ -483,6 +513,67 @@ spairs = function( tbl, func )
     return iter
 end
 
+--// number to hex - returns HEX representation of num - based on a script by ukpyr
+num2hex = function( num )
+    if type( num ) ~= "number" then
+        return nil, "tool.lua: error in num2hex(), number expected, got " .. type( num )
+    end
+    local hexstr = "0123456789abcdef"
+    local s = ""
+    while num > 0 do
+        local mod = math_fmod( num, 16 )
+        s = string_sub( hexstr, mod + 1, mod + 1 ) .. s
+        num = math_floor( num / 16 )
+    end
+    if s == "" then s = "0" end
+    return s
+end
+
+--// string to hex - returns HEX representation of str - based on a script by ukpyr
+str2hex = function( str )
+    if type( str ) ~= "string" then
+        return nil, "tool.lua: error in str2hex(), string expected, got " .. type( str )
+    end
+    local hex = ""
+    while #str > 0 do
+        local hb = num2hex( string_byte( str, 1, 1 ) )
+        if #hb < 2 then hb = "0" .. hb end
+        hex = hex .. hb
+        str = string_sub( str, 2 )
+    end
+    return hex
+end
+
+--// string to base64 - returns BASE64 representation of str - based on a script by ukpyr
+str2base64 = function( str )
+    if type( str ) ~= "string" then
+        return nil, "tool.lua: error in str2base64(), string expected, got " .. type( str )
+    end
+    local b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    local s64 = ""
+    while #str > 0 do
+        local bytes_num = 0
+        local buf = 0
+        for byte_cnt = 1, 3 do
+            buf = ( buf * 256 )
+            if #str > 0 then
+                buf = buf + string_byte( str, 1, 1 )
+                str = string_sub( str, 2 )
+                bytes_num = bytes_num + 1
+            end
+        end
+        for group_cnt = 1,( bytes_num + 1 ) do
+            b64char = math_fmod( math_floor( buf / 262144 ), 64 ) + 1
+            s64 = s64 .. string_sub( b64chars, b64char, b64char )
+            buf = buf * 64
+        end
+        for fill_cnt = 1,( 3 - bytes_num ) do
+            s64 = s64 .. "="
+        end
+    end
+    return s64
+end
+
 return {
 
     SaveTable = SaveTable,
@@ -500,5 +591,8 @@ return {
     ClearFile = ClearFile,
     FileWrite = FileWrite,
     spairs = spairs,
+    num2hex = num2hex,
+    str2hex = str2hex,
+    str2base64 = str2base64,
 
 }
