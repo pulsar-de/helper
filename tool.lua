@@ -4,9 +4,9 @@
 
         - a lua tool library with useful functions
         - based on: "luadch/core/util.lua" written by blastbeat and pulsar
-        - license:  GNU General Public License, Version 3
+        - license:  unless otherwise stated: GNU General Public License, Version 3
 
-    Last change: 2018-09-14
+    Last change: 2018-09-15
 
 
 
@@ -114,6 +114,14 @@
         - timestamp is optional and has three posible values: "time" or "date" or "both"
         - example: result, err = tool.FileWrite( txt, file[, timestamp] ); if result then .. else err
 
+    tool.spairs( tbl[, func] )
+
+        - like ipairs for alphabetical indices
+        - based on http://www.lua.org/pil/19.3.html written by Roberto Ierusalimschy
+        - license: MIT License
+        - argument #2 is optional and similar to the second optional argument in table.sort function
+        - example: for k, v in tool.spairs( tbl ) do print( k, v )
+
 ]]
 
 
@@ -137,6 +145,7 @@ local FileExists
 local MakeFile
 local ClearFile
 local FileWrite
+local spairs
 
 --// table lookups
 local os_time = os.time
@@ -455,6 +464,25 @@ FileWrite = function( txt, file, timestamp )
     end
 end
 
+--// like ipairs for alphabetical indices -- based on http://www.lua.org/pil/19.3.html
+spairs = function( tbl, func )
+    local arr = {}
+    for n in pairs( tbl ) do
+        table_insert( arr, n )
+    end
+    table_sort( arr, func )
+    local i = 0
+    local iter = function()
+        i = i + 1
+        if arr[ i ] == nil then
+            return nil
+        else
+            return arr[ i ], tbl[ arr[ i ] ]
+        end
+    end
+    return iter
+end
+
 return {
 
     SaveTable = SaveTable,
@@ -471,5 +499,6 @@ return {
     MakeFile = MakeFile,
     ClearFile = ClearFile,
     FileWrite = FileWrite,
+    spairs = spairs,
 
 }
