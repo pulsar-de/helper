@@ -1,12 +1,12 @@
 --[[
 
-    tool.lua
+    tool.lua by pulsar
 
         - a lua tool library with useful functions
         - based on: "luadch/core/util.lua" written by blastbeat and pulsar
         - license:  unless otherwise stated: GNU General Public License, Version 3
 
-    Last change: 2018-09-15
+    Last change: 2020-02-11
 
 
 
@@ -48,12 +48,16 @@
         - returns: nil, err on error
         - example: string, err = tool.FormatBytes( bytes ); if string then ... else ... err
 
-    string = tool.GeneratePass( len )
+    string = tool.GeneratePass( len, mode )
 
-        - returns a random generated alphanumerical password string with length = len
-        - if no param is specified then len = 20 (max. 1000)
+        - returns a random generated password string with length = len
+        - if no len is specified then len = 20 (max. 1000)
         - if len is invalid then len = 20
-        - example: pass = tool.GeneratePass( 10 )
+		- mode can be:
+			nil = alphanumerical (default)
+			1 = only characters / 2 = only numbers / 3 = only special charcters
+			4 = characters + numbers (equal to nil) / 5 = characters + numbers + special characters
+        - example: pass = tool.GeneratePass( 10 ) or pass = tool.GeneratePass( 10, 5 )
 
     string/nil, nil/err = tool.TrimString( string )
 
@@ -343,26 +347,70 @@ FormatBytes = function( bytes )
     end
 end
 
---// returns a random generated alphanumerical password - by blastbeat
-GeneratePass = function( len )
+--// returns a random generated password - based on a function by blastbeat
+GeneratePass = function( len, mode )
     local len = tonumber( len )
-    if not ( type( len ) == "number" ) or ( len < 0 ) or ( len > 1000 ) then len = 20 end
+	if not ( type( len ) == "number" ) or ( len < 0 ) or ( len > 1000 ) then len = 20 end
+	if not ( type( mode ) == "number" ) then mode = nil end
     local lower = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
                     "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" }
     local upper = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
                     "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" }
+	local special = { "!", "?", "@", "(", ")", "{", "}", "[", "]", "\\", "/", "=", "~", "$", "%", "&", "#", "*", "-", "+", ".", ",", "_" }
     math_randomseed( os_time() )
     local pwd = ""
-    for i = 1, len do
-        local X = math_random( 0, 9 )
-        if X < 4 then
-            pwd = pwd .. math_random( 0, 9 )
-        elseif ( X >= 4 ) and ( X < 6 ) then
-            pwd = pwd .. upper[ math_random( 1, 25 ) ]
-        else
-            pwd = pwd .. lower[ math_random( 1, 25 ) ]
-        end
-    end
+	--// mode "1"
+	if ( mode == 1 ) then
+		for i = 1, len do
+			local X = math_random( 0, 9 )
+			if ( X < 6 ) then
+				pwd = pwd .. upper[ math_random( 1, 25 ) ]
+			else
+				pwd = pwd .. lower[ math_random( 1, 25 ) ]
+			end
+		end
+	end
+	--// mode "2"
+	if ( mode == 2 ) then
+		for i = 1, len do
+			pwd = pwd .. math_random( 0, 9 )
+		end
+	end
+
+	--// mode "3"
+	if ( mode == 3 ) then
+		for i = 1, len do
+			pwd = pwd .. special[ math_random( 1, 23 ) ]
+		end
+	end
+	--// mode "4" and nil
+	if ( mode == nil ) or ( mode == 4 ) then
+		for i = 1, len do
+			local X = math_random( 0, 9 )
+			if X < 4 then
+				pwd = pwd .. math_random( 0, 9 )
+			elseif ( X >= 4 ) and ( X < 6 ) then
+				pwd = pwd .. upper[ math_random( 1, 25 ) ]
+			else
+				pwd = pwd .. lower[ math_random( 1, 25 ) ]
+			end
+		end
+	end
+	--// mode "5"
+	if ( mode == 5 ) then
+		for i = 1, len do
+			local X = math_random( 0, 16 )
+			if X <= 4 then
+				pwd = pwd .. math_random( 0, 9 )
+			elseif ( X >= 5 ) and ( X < 9 ) then
+				pwd = pwd .. upper[ math_random( 1, 25 ) ]
+			elseif ( X >= 9 ) and ( X < 13 ) then
+				pwd = pwd .. lower[ math_random( 1, 25 ) ]
+			else
+				pwd = pwd .. special[ math_random( 1, 23 ) ]
+			end
+		end
+	end
     return pwd
 end
 

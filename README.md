@@ -1,2 +1,3 @@
 # helper
-helper libs etc.
+
+tool.lua - a lua tool library with useful functions
