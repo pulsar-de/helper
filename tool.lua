@@ -4,13 +4,16 @@
 
         - a lua tool library with useful functions
         - based on: "luadch/core/util.lua" written by blastbeat and pulsar
-        - license:  unless otherwise stated: GNU General Public License, Version 3
+        - license: unless otherwise stated: GNU General Public License, Version 3
 
-    Last change: 2020-02-11
+		usage: local tool = require( "tool" )
+		e.g.:  tool.TableIndexChange( tbl, old_index, new_index )
+
+    Last change: 2020-02-12
 
 
 
-    [ Application programming interface (API) ]
+    Application programming interface (API):
 
 
     true, err = tool.SaveArray( array, path )
@@ -48,14 +51,14 @@
         - returns: nil, err on error
         - example: string, err = tool.FormatBytes( bytes ); if string then ... else ... err
 
-    string = tool.GeneratePass( len, mode )
+    string = tool.GeneratePass( len [, mode ] )
 
         - returns a random generated password string with length = len
         - if no len is specified then len = 20 (max. 1000)
         - if len is invalid then len = 20
 		- mode can be:
 			nil = alphanumerical (default)
-			1 = only characters / 2 = only numbers / 3 = only special charcters
+			1 = only characters / 2 = only numbers / 3 = only special charcters /
 			4 = characters + numbers (equal to nil) / 5 = characters + numbers + special characters
         - example: pass = tool.GeneratePass( 10 ) or pass = tool.GeneratePass( 10, 5 )
 
@@ -150,6 +153,14 @@
         - based on a script by ukpyr
         - example: result, err = str2base64( str ); if result then ... else err
 
+	string/nil, nil/err = benchmark( func [, repeats] )
+
+		- simple benchmark - repeats a function n times
+		- returns: a string with the elapsed time in seconds
+		- returns: nil, err on error
+		- default repeats: 1000
+		- example: result, err = benchmark( func, 50000 )
+
 ]]
 
 
@@ -177,10 +188,12 @@ local spairs
 local num2hex
 local str2hex
 local str2base64
+local benchmark
 
 --// table lookups
 local os_time = os.time
 local os_date = os.date
+local os_clock = os.clock
 local io_open = io.open
 local math_floor = math.floor
 local math_random = math.random
@@ -515,10 +528,10 @@ ClearFile = function( file )
     end
 end
 
---// write text in a new line on the bottom of a file optional with timestamp
+--// write text in a new line on the bottom of a file optional with timestamp - by pulsar
 FileWrite = function( txt, file, timestamp )
     if type( txt ) ~= "string" then
-        return nil, "tool.lua: errir in FileWrite(), string expected for #1, got " .. type( txt )
+        return nil, "tool.lua: error in FileWrite(), string expected for #1, got " .. type( txt )
     end
     if type( file ) ~= "string" then
         return nil, "tool.lua: error in FileWrite(), string expected for #2, got " .. type( file )
@@ -622,6 +635,17 @@ str2base64 = function( str )
     return s64
 end
 
+--// repeats a function n times and returns a string with the elapsed time in seconds - by pulsar
+benchmark = function( func, repeats ) -- default repeats: 10.000.000
+    if type( func ) ~= "function" then
+        return nil, "tool.lua: error in benchmark(), function expected for #1, got " .. type( func )
+    end
+    if ( not repeats ) or type( repeats ) ~= "number" then repeats = 1000 end
+    local start = os_clock()
+    for i = 1, repeats do func() end
+    return string_format( "elapsed time: %s seconds, loops: " .. repeats, os_clock() - start )
+end
+
 return {
 
     SaveTable = SaveTable,
@@ -642,5 +666,6 @@ return {
     num2hex = num2hex,
     str2hex = str2hex,
     str2base64 = str2base64,
+	benchmark = benchmark,
 
 }
