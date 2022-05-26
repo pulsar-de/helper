@@ -2,14 +2,14 @@
 
     tool.lua by pulsar
 
+        Last change: 2022-05-26
+
         - a lua tool library with useful functions
         - based on: "luadch/core/util.lua" written by blastbeat and pulsar
         - license: unless otherwise stated: GNU General Public License, Version 3
 
 		usage: local tool = require( "tool" )
 		e.g.:  tool.TableIndexChange( tbl, old_index, new_index )
-
-    Last change: 2020-02-12
 
 
 
@@ -37,12 +37,12 @@
         - returns: nil, err on error
         - example: tbl, err = tool.LoadTable( path ); if tbl then ... else ... err
 
-    number/nil, number/err, number, number = tool.FormatSeconds( t )
+    number/nil, number/err, number, number, number = tool.FormatSeconds( t )
 
-        - converts time to: days, hours, minutes, seconds
-        - returns: number, number, number, number (d,h,m,s) on success
+        - converts time to: years, days, hours, minutes, seconds
+        - returns: number, number, number, number, number (y,d,h,m,s) on success
         - returns: nil, err on error
-        - example: d, h, m, s = tool.FormatSeconds( os.difftime( os.time( ), signal.get( "start" ) ) ) )
+        - example: y, d, h, m, s = tool.FormatSeconds( os.difftime( os.time( ), signal.get( "start" ) ) ) )
 
     string/nil = tool.FormatBytes( bytes )
 
@@ -328,17 +328,24 @@ LoadTable = function( path )
     return nil, "tool.lua: " .. err
 end
 
---// converts time to: days, hours, minutes, seconds - by motnahp
+--// converts seconds to: years, days, hours, minutes, seconds
 FormatSeconds = function( t )
     local t = tonumber( t )
-    if type( t ) ~= "number" then
-        return nil, "tool.lua: error in FormatSeconds(), number expected, got " .. type( t )
+    if not t then
+        return nil, "tool.lua: error: number expected, got nil"
+    end
+    if not type( t ) == "number" then
+        return nil, "tool.lua: error: number expected, got " .. type( t )
+    end
+    if ( t < 0 ) or ( t == 1 / 0 ) then
+        return nil, "tool.lua: error: parameter not valid"
     end
     return
-        math_floor( t / ( 60 * 60 * 24 ) ),
-        math_floor( t / ( 60 * 60 ) ) % 24,
-        math_floor( t / 60 ) % 60,
-        t % 60
+        math.floor( t / ( 60 * 60 * 24 ) / 365 ), -- years
+        math.floor( t / ( 60 * 60 * 24 ) ) % 365, -- days
+        math.floor( t / ( 60 * 60 ) ) % 24, -- hours
+        math.floor( t / 60 ) % 60, -- minutes
+        t % 60 -- seconds
 end
 
 --// convert bytes to the right unit - based on a function by Night
