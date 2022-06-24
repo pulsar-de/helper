@@ -2,7 +2,7 @@
 
     tool.lua by pulsar
 
-        Last change: 2022-05-26
+        Last change: 2022-06-24
 
         - a lua tool library with useful functions
         - based on: "luadch/core/util.lua" written by blastbeat and pulsar
@@ -37,7 +37,7 @@
         - returns: nil, err on error
         - example: tbl, err = tool.LoadTable( path ); if tbl then ... else ... err
 
-    number/nil, number/err, number, number, number = tool.FormatSeconds( t )
+    number/nil, number/err, number/nil, number/nil, number/nil = tool.FormatSeconds( t )
 
         - converts time to: years, days, hours, minutes, seconds
         - returns: number, number, number, number, number (y,d,h,m,s) on success
