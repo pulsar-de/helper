@@ -30,12 +30,18 @@
         - returns: nil, err on error
         - example: result, err = tool.SaveTable( tbl, name, path ); if result then ... else ... err
 
-    table, err = tool.LoadTable( path )
+    table/nil, err = tool.LoadTable( path )
 
         - loads a local table from file
         - returns: table, nil on success
         - returns: nil, err on error
         - example: tbl, err = tool.LoadTable( path ); if tbl then ... else ... err
+
+    true/false, nil/err = tool.MakeTable( tbl, path )
+
+        - make a new local table file
+        - returns: true, nil on success
+        - returns: false, err on error
 
     number/nil, number/err, number/nil, number/nil, number/nil = tool.FormatSeconds( t )
 
@@ -173,6 +179,7 @@ local SortSerialize
 local SaveArray
 local SaveTable
 local LoadTable
+local MakeTable
 local FormatSeconds
 local FormatBytes
 local GeneratePass
@@ -326,6 +333,29 @@ LoadTable = function( path )
         end
     end
     return nil, "tool.lua: " .. err
+end
+
+--// make a new local table file
+MakeTable = function( name, path )
+    local t = {}
+    if not path or path == "" then
+        local err = "tool.lua: function 'MakeTable': missing param: path"
+        return false, err
+    end
+    local file, err = io.open( path, "w" )
+    if not file then
+        local err = "tool.lua: function 'MakeTable': error in " .. path .. ": " .. err .. " (MaketTable)"
+        return false, err
+    else
+        if not name or name == "" then
+            file:write( "return {\n\n" )
+            file:write( "}" )
+        else
+            file:write( "local ", name, "\n\n", name, " = {\n\n}", "\n\nreturn ", name )
+        end
+        file:close()
+    end
+    return true
 end
 
 --// converts seconds to: years, days, hours, minutes, seconds
@@ -658,6 +688,7 @@ return {
     SaveTable = SaveTable,
     LoadTable = LoadTable,
     SaveArray = SaveArray,
+    MakeTable = MakeTable,
     FormatSeconds = FormatSeconds,
     FormatBytes = FormatBytes,
     GeneratePass = GeneratePass,
